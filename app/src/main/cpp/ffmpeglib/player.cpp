@@ -47,10 +47,11 @@ jobject jVideoPlayer;
 jobject jAudioTrack;
 char *inputPath;
 static Player *player;
+int isPlaying = JNI_TRUE;
 
-void initFormatCtx();
+int initFormatCtx();
 
-void initCodecCtx(int streamIndex);
+int initCodecCtx(int streamIndex);
 
 void decodeVideoPrepare(JNIEnv *env, jobject surface);
 
@@ -96,7 +97,8 @@ void resultToJava(int errorCode) {
     jclass jcls = env->GetObjectClass(jVideoPlayer);
     jmethodID jmid = env->GetMethodID(jcls, "receiveResult", "(I)V");
     env->CallVoidMethod(jVideoPlayer, jmid, errorCode);
-    javaVm->DetachCurrentThread();
+    //使用DetachCurrentThread()会崩溃,还未查清楚什么问题
+//    javaVm->DetachCurrentThread();
 }
 
 extern "C" {
@@ -118,22 +120,25 @@ Java_com_xin_ndkstudy_VideoUtils_play(JNIEnv *env, jobject thiz, jstring jInput,
         LOGE("%s", "文件地址为空")
         return;
     }
+    isPlaying = JNI_TRUE;
     inputPath = (char *) malloc(strlen(input) + 1);
     memset(inputPath, 0, strlen(input) + 1);
     memcpy(inputPath, input, strlen(input));
-    initFormatCtx();
-    initCodecCtx(player->videoStreamIndex);
-    initCodecCtx(player->audioStreamIndex);
-    decodeVideoPrepare(env, surface);
-    decodeAudioPrepare();
-    jniAudioPrepare(env);
-    pthread_create(&(player->decodeThreads), nullptr, decodeData, (void *) player);
-
+    if (initFormatCtx() >= 0) {
+        if (initCodecCtx(player->videoStreamIndex) >= 0 &&
+            initCodecCtx(player->audioStreamIndex) >= 0) {
+            decodeVideoPrepare(env, surface);
+            decodeAudioPrepare();
+            jniAudioPrepare(env);
+            pthread_create(&(player->decodeThreads), nullptr, decodeData, (void *) player);
+        }
+    }
     env->ReleaseStringUTFChars(jInput, input);
 }
 
 JNIEXPORT void JNICALL
 Java_com_xin_ndkstudy_VideoUtils_release(JNIEnv *env, jobject thiz) {
+    isPlaying = JNI_FALSE;
     if (jVideoPlayer != nullptr) {
         env->DeleteGlobalRef(jVideoPlayer);
     }
@@ -149,18 +154,20 @@ Java_com_xin_ndkstudy_VideoUtils_release(JNIEnv *env, jobject thiz) {
 }
 }
 
-void initFormatCtx() {
+int initFormatCtx() {
     av_register_all();
     AVFormatContext *pContext = avformat_alloc_context();
     if (avformat_open_input(&pContext, inputPath, nullptr, nullptr) != 0) {
         resultToJava(ERROR_OPEN_VIDEO_FILE);
         LOGE("%s", "视频文件打开失败")
-        return;
+        free(inputPath);
+        return -1;
     }
     if (avformat_find_stream_info(pContext, nullptr) < 0) {
         resultToJava(ERROR_VIDEO_STREAM_INFO);
         LOGE("%s", "获取视频信息失败")
-        return;
+        free(inputPath);
+        return -1;
     }
     int i = 0;
     for (; i < pContext->nb_streams; ++i) {
@@ -172,23 +179,25 @@ void initFormatCtx() {
     }
     player->inputFormatCtx = pContext;
     free(inputPath);
+    return 0;
 }
 
-void initCodecCtx(int streamIndex) {
+int initCodecCtx(int streamIndex) {
     AVFormatContext *pContext = player->inputFormatCtx;
     AVCodecContext *pAvCodecContext = pContext->streams[streamIndex]->codec;
     AVCodec *pCodec = avcodec_find_decoder(pAvCodecContext->codec_id);
     if (pCodec == nullptr) {
         resultToJava(ERROR_VIDEO_DECODER);
         LOGE("%s", "解码失败")
-        return;
+        return -1;
     }
     if (avcodec_open2(pAvCodecContext, pCodec, nullptr) < 0) {
         resultToJava(ERROR_OPEN_VIDEO_DECODER);
         LOGE("%s", "解码器无法打开")
-        return;
+        return -1;
     }
     player->inputCodecCtx[streamIndex] = pAvCodecContext;
+    return 0;
 }
 
 void decodeVideoPrepare(JNIEnv *env, jobject surface) {
@@ -204,7 +213,7 @@ void *decodeData(void *arg) {
     AVFormatContext *pContext = pPlayer->inputFormatCtx;
     auto *pPacket = (AVPacket *) av_malloc(sizeof(AVPacket));
     int frameCount = 0;
-    while (av_read_frame(pContext, pPacket) >= 0) {
+    while (av_read_frame(pContext, pPacket) >= 0 && isPlaying) {
         if (pPacket->stream_index == pPlayer->videoStreamIndex) {
             decodeVideo(pPlayer, pPacket);
             LOGI("video frameCount:%d", frameCount++)
@@ -216,13 +225,14 @@ void *decodeData(void *arg) {
         av_packet_unref(pPacket);
 //        av_free_packet(pPacket);
     }
+    LOGI("isPlaying==0是自己主动退出,isPlaying:%d", isPlaying)
     LOGI("%s", "解码完成")
-    free(pPlayer->audioTrackWriteMid);
+//    free(pPlayer->audioTrackWriteMid);
     swr_free(&(pPlayer->swrCtx));
     avformat_free_context(pPlayer->inputFormatCtx);
     avcodec_close(pPlayer->inputCodecCtx[pPlayer->videoStreamIndex]);
     avcodec_close(pPlayer->inputCodecCtx[pPlayer->audioStreamIndex]);
-    ANativeWindow_release(pPlayer->nativeWindow);
+//    ANativeWindow_release(pPlayer->nativeWindow);
     return nullptr;
 }
 
