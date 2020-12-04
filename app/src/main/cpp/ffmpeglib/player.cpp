@@ -103,7 +103,7 @@ void resultToJava(int errorCode) {
 
 extern "C" {
 JNIEXPORT void JNICALL
-Java_com_xin_ndkstudy_VideoUtils_init(JNIEnv *env, jobject thiz) {
+Java_com_xin_ndkstudy_util_VideoUtils_init(JNIEnv *env, jobject thiz) {
     env->GetJavaVM(&javaVm);
     jVideoPlayer = env->NewGlobalRef(thiz);
     if (player == nullptr) {
@@ -112,7 +112,7 @@ Java_com_xin_ndkstudy_VideoUtils_init(JNIEnv *env, jobject thiz) {
 }
 
 JNIEXPORT void JNICALL
-Java_com_xin_ndkstudy_VideoUtils_play(JNIEnv *env, jobject thiz, jstring jInput,
+Java_com_xin_ndkstudy_util_VideoUtils_play(JNIEnv *env, jobject thiz, jstring jInput,
                                       jobject surface) {
     const char *input = env->GetStringUTFChars(jInput, JNI_FALSE);
     if (input == nullptr) {
@@ -137,7 +137,7 @@ Java_com_xin_ndkstudy_VideoUtils_play(JNIEnv *env, jobject thiz, jstring jInput,
 }
 
 JNIEXPORT void JNICALL
-Java_com_xin_ndkstudy_VideoUtils_release(JNIEnv *env, jobject thiz) {
+Java_com_xin_ndkstudy_util_VideoUtils_release(JNIEnv *env, jobject thiz) {
     isPlaying = JNI_FALSE;
     if (jVideoPlayer != nullptr) {
         env->DeleteGlobalRef(jVideoPlayer);

@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.xin.ndkstudy.*
 import com.xin.ndkstudy.ext.setOnNoRepeatClickListener
 import com.xin.ndkstudy.ext.startActivity
+import com.xin.ndkstudy.util.TestUtils
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -26,6 +27,10 @@ class MainActivity : AppCompatActivity() {
 
         btJumpPlayer.setOnNoRepeatClickListener {
             startActivity<PlayerActivity> {  }
+        }
+
+        btJumpLive.setOnNoRepeatClickListener {
+            startActivity<LiveActivity> {  }
         }
     }
 

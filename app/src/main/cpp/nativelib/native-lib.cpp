@@ -15,7 +15,7 @@ void test(jint type);
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_xin_ndkstudy_TestUtils_contentAppend(JNIEnv *env, jobject thiz, jstring jstr, jint type) {
+Java_com_xin_ndkstudy_util_TestUtils_contentAppend(JNIEnv *env, jobject thiz, jstring jstr, jint type) {
 
     const char *content = env->GetStringUTFChars(jstr, JNI_FALSE);
     char *contents = const_cast<char *>(content);

@@ -28,7 +28,7 @@ const char *PASSWORD = "coolXin";
 
 extern "C" {
 JNIEXPORT void JNICALL
-Java_com_xin_ndkstudy_FileUtils_encrypt(JNIEnv *env, jobject obj, jstring jNormalPath,
+Java_com_xin_ndkstudy_util_FileUtils_encrypt(JNIEnv *env, jobject obj, jstring jNormalPath,
                                         jstring jEncryptPath) {
     LOGI("%s", "encrypt执行了")
 //    globalRef = env->NewGlobalRef(obj);
@@ -40,7 +40,7 @@ Java_com_xin_ndkstudy_FileUtils_encrypt(JNIEnv *env, jobject obj, jstring jNorma
 }
 
 JNIEXPORT void JNICALL
-Java_com_xin_ndkstudy_FileUtils_decrypt(JNIEnv *env, jobject obj, jstring jEncryptPath,
+Java_com_xin_ndkstudy_util_FileUtils_decrypt(JNIEnv *env, jobject obj, jstring jEncryptPath,
                                         jstring jDecryptPath) {
     LOGI("%s", "decrypt执行了")
     const char *encryptPath = env->GetStringUTFChars(jEncryptPath, JNI_FALSE);
@@ -91,7 +91,7 @@ void fileResult(JNIEnv *env, jobject obj, int code, jstring msg) {
     //不能直接点击fileResult跳转到java文件
 //    jclass jcls = env->GetObjectClass(obj);
     //可直接点击fileResult跳转到java文件
-    jclass jcls = env->FindClass("com/xin/ndkstudy/FileUtils");
+    jclass jcls = env->FindClass("com/xin/ndkstudy/util/FileUtils");
 
 //    jclass jcls = env->GetObjectClass(globalRef);
     jmethodID methodId = env->GetMethodID(jcls, "fileResult", "(ILjava/lang/String;)V");

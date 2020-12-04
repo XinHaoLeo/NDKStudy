@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.os.Environment
 import androidx.appcompat.app.AppCompatActivity
 import com.xin.ndkstudy.R
-import com.xin.ndkstudy.VideoUtils
+import com.xin.ndkstudy.util.VideoUtils
 import kotlinx.android.synthetic.main.activity_video_player.*
 import java.io.File
 

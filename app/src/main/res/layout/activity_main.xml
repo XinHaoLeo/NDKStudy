@@ -30,4 +30,11 @@
         android:textAllCaps="false"
         android:layout_height="wrap_content"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:id="@+id/btJumpLive"
+        android:text="Live"
+        android:textAllCaps="false"
+        android:layout_height="wrap_content"/>
+
 </LinearLayout>

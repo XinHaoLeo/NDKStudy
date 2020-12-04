@@ -41,6 +41,16 @@ add_library(
         src/main/cpp/ffmpeglib/player.cpp
 )
 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/src/main/cpp/${CMAKE_ANDROID_ARCH_ABI})
+add_library(
+        live
+
+        SHARED
+
+        src/main/cpp/live/live.cpp
+        src/main/cpp/live/queue.cpp
+)
+
 add_library( ffmpeg
         SHARED
         IMPORTED )
@@ -54,6 +64,27 @@ add_library( mp3lame
 set_target_properties( mp3lame
         PROPERTIES IMPORTED_LOCATION
         ../../../../libs/${CMAKE_ANDROID_ARCH_ABI}/libmp3lame.so )
+
+add_library(x264
+        STATIC
+        IMPORTED)
+set_target_properties(x264
+        PROPERTIES IMPORTED_LOCATION
+        ../../../../libs/libx264.a)
+
+add_library(faac
+        STATIC
+        IMPORTED)
+set_target_properties(faac
+        PROPERTIES IMPORTED_LOCATION
+        ../../../../libs/libfaac.a)
+
+add_library(rtmp
+        STATIC
+        IMPORTED)
+set_target_properties(rtmp
+        PROPERTIES IMPORTED_LOCATION
+        ../../../../libs/librtmp.a)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
@@ -102,6 +133,17 @@ target_link_libraries( # Specifies the target library.
         ffmpeg-lib
         mp3lame
         ffmpeg
+        -landroid
+
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib})
+
+target_link_libraries( # Specifies the target library.
+        live
+        x264
+        faac
+        rtmp
         -landroid
 
         # Links the target library to the log library
